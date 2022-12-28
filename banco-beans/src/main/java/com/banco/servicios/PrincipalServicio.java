@@ -21,6 +21,7 @@ public class PrincipalServicio {
         int opcion;
         inicializarUsuarios();
 
+
         do{
             System.out.println("\t\t MENÚ PRINCIPAL");
             System.out.println("1. Ingresar un nuevo usuario.");
