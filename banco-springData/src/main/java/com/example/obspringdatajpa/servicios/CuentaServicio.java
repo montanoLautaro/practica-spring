@@ -7,17 +7,19 @@ import com.example.obspringdatajpa.entidades.Cuenta;
 import com.example.obspringdatajpa.entidades.Usuario;
 import com.example.obspringdatajpa.repositorios.CuentaRepository;
 import com.example.obspringdatajpa.repositorios.UsuarioRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
-@Component
+@Service
 public class CuentaServicio {
 
 
-    public void menuCuenta(UsuarioRepository usuarios, Usuario user, CuentaRepository cuentaRepository){
+    public void menuCuenta(Usuario user){
         int opcion;
+        Cuenta aux = buscarCuentaPorUsuario(user);
+        System.out.println("saldo cuenta aux:" + aux.getSaldo());
         do{
             System.out.println("\t\t MENÚ DE USUARIOS");
             System.out.println("1. Ingresar saldo.");
@@ -28,13 +30,13 @@ public class CuentaServicio {
             opcion = Validador.validarIngresoEnteroPositivo();
             switch (opcion){
                 case 1:
-                    ingresarDinero(user, cuentaRepository);
+                    ingresarDinero(buscarCuentaPorUsuario(user));
                     break;
                 case 2:
-                    mostrarDatosCuenta(user);
+                    mostrarDatosCuenta(buscarCuentaPorUsuario(user));
                     break;
                 case 3:
-                    enviarDinero(usuarios, user);
+                    enviarDinero(buscarCuentaPorUsuario(user));
                     break;
                 case 4:
                     System.out.println("VOLVIENDO AL MENÚ PRINCIPAL...");
@@ -104,28 +106,29 @@ public class CuentaServicio {
         return numeroNuevo;
     }
 
-    public void ingresarDinero(Usuario user, CuentaRepository cuentaRepository){
+    public void ingresarDinero(Cuenta cuenta){
         double dinero;
         System.out.println("-- INGRESO DE DINERO");
         System.out.println("Ingrese la cantidad de dinero que va a ingersar a su cuenta: ");
         dinero = Validador.validarIngresoDoublePositivo();
-        dinero = dinero + user.getCuenta().getSaldo();
-        buscarCuentaPorUsuario(user,cuentaRepository).setSaldo(dinero);
+        dinero = dinero + cuenta.getSaldo();
+        cuenta.setSaldo(dinero);
+        PrincipalServicio.getCuentaRepository().save(cuenta);
         System.out.println("El ingreso se realizo con éxito.");
     }
 
-    public void mostrarDatosCuenta(Usuario user){
-        System.out.println("Tarjeta Nro " + user.getCuenta().getNumeroTarjeta());
-        System.out.println("Dinero disponible: $" + user.getCuenta().getSaldo());
+    public void mostrarDatosCuenta(Cuenta cuenta){
+        System.out.println("Tarjeta Nro " + cuenta.getNumeroTarjeta());
+        System.out.println("Dinero disponible: $" + cuenta.getSaldo());
         System.out.println("");
     }
 
-    public void enviarDinero(UsuarioRepository usuarios, Usuario user){
+    public void enviarDinero(Cuenta cuentaBase){
         System.out.println("-- ENVIAR DINERO");
-        String usuarioDestino = validarNombreUsuario();
-        Usuario aux = encontrarUsuario(usuarios, usuarioDestino);
+        String nombreUsuario = validarNombreUsuario();
+        Usuario aux = encontrarUsuario(nombreUsuario);
         if(aux != null){
-            realizarTransferencia(user, aux);
+            realizarTransferencia(cuentaBase, buscarCuentaPorUsuario(aux));
             System.out.println("Operación realizada con exito");
         }else{
             System.out.println("El usuario que ingresó, no existe.");
@@ -133,8 +136,8 @@ public class CuentaServicio {
         System.out.println("Volviendo al menú de usuario...");
     }
 
-    public Usuario encontrarUsuario(UsuarioRepository usuarios, String nombre){
-        ArrayList<Usuario>listaUsuarios = (ArrayList<Usuario>) usuarios.findAll();
+    public Usuario encontrarUsuario(String nombre){
+        ArrayList<Usuario>listaUsuarios = (ArrayList<Usuario>) PrincipalServicio.getUsuarioRepository().findAll();
         for (Usuario aux: listaUsuarios) {
             if(aux.getNombre().equalsIgnoreCase(nombre)){
                 return  aux;
@@ -155,35 +158,39 @@ public class CuentaServicio {
         return nombre;
     }
 
-    public void realizarTransferencia(Usuario userBase, Usuario userDestino ){
+    public void realizarTransferencia(Cuenta cuentaBase, Cuenta cuentaDestino ){
         boolean resultado = true;
         System.out.println("Ingrese la cantidad de dinero que quiere enviar: ");
         double dinero;
         do{
             dinero= Validador.validarIngresoDoublePositivo();
-            if(dinero <= userBase.getCuenta().getSaldo()){
+            if(dinero <= cuentaBase.getSaldo()){
                 System.out.println("Enviando dinero a la cuenta destino...");
-                restarSaldo(userBase, dinero);
-                sumarSaldo(userDestino, dinero);
+                restarSaldo(cuentaBase, dinero);
+                sumarSaldo(cuentaDestino, dinero);
                 resultado = false;
             }else {
                 System.out.println("El monto ingresado es superior al monto disponible, ingrese otro monto:");
             }
         }while(resultado);
     }
-
-    public void restarSaldo(Usuario user, double monto){
-        double nuevoSaldo = user.getCuenta().getSaldo() - monto;
-        user.getCuenta().setSaldo(nuevoSaldo);
+    public void restarSaldo(Cuenta cuenta, double monto){
+        double nuevoSaldo = cuenta.getSaldo() - monto;
+        cuenta.setSaldo(nuevoSaldo);
+        PrincipalServicio.getCuentaRepository().save(cuenta);
     }
-    public void sumarSaldo(Usuario user, double monto){
-        double nuevoSaldo = user.getCuenta().getSaldo() + monto;
-        user.getCuenta().setSaldo(nuevoSaldo);
+    public void sumarSaldo(Cuenta cuenta, double monto){
+        double nuevoSaldo = cuenta.getSaldo() + monto;
+        cuenta.setSaldo(nuevoSaldo);
+        PrincipalServicio.getCuentaRepository().save(cuenta);
     }
-
-
-    public Cuenta buscarCuentaPorUsuario(Usuario user, CuentaRepository cuentaRepository){
-        return cuentaRepository.getReferenceById(user.getCuenta().getId_cuenta());
+    public Cuenta buscarCuentaPorUsuario(Usuario user){
+        if(user != null){
+            return PrincipalServicio.getUsuarioRepository().findById(user.getId()).get().getCuenta();
+        }else{
+            System.out.println("Error al buscar la cuenta del usuario");
+            return null;
+        }
     }
 
 }

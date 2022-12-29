@@ -119,9 +119,4 @@ public class Usuario {
         this.id = id;
     }
 
-    @Override
-    public String toString() {
-        return   "|" + nombre + "\t\t\t\t" + "\t\t\t" + apellido + "\t\t\t" + edad +
-                "\t\t\t" + direccion + "\t\t\t\t\t\t\t\t" + telefono + "\t\t\t\t" + correo + "\t\t" ;
-    }
 }

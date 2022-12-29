@@ -11,12 +11,10 @@ public class ObSpringdatajpaApplication {
 
 	public static void main(String[] args) {
 
-		ApplicationContext context = SpringApplication.run(ObSpringdatajpaApplication.class, args);
-		ApplicationContext contextBeans = new ClassPathXmlApplicationContext("beans.xml");
-		PrincipalServicio principalServicio = (PrincipalServicio) contextBeans.getBean("principalServicio");
+		ApplicationContext context = SpringApplication.run(ObSpringdatajpaApplication.class, args);;
+		PrincipalServicio principalServicio = new PrincipalServicio(context);
 		try{
-			principalServicio.inicializarRepositorios(context);
-			principalServicio.inicializarBeans(contextBeans);
+			principalServicio.inicializarRepositoriosServicios();
 			principalServicio.menu();
 		}catch (Exception e){
 			e.printStackTrace();

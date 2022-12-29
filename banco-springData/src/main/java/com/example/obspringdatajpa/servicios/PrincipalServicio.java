@@ -5,6 +5,7 @@ import com.example.obspringdatajpa.entidades.Cuenta;
 import com.example.obspringdatajpa.entidades.Usuario;
 import com.example.obspringdatajpa.repositorios.CuentaRepository;
 import com.example.obspringdatajpa.repositorios.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -13,35 +14,45 @@ import java.util.ArrayList;
 @Component
 
 public class PrincipalServicio {
+    private static UsuarioServicio usuarioServicio;
+    private static CuentaServicio cuentaServicio;
+    private static UsuarioRepository usuarioRepository;
+    private static CuentaRepository cuentaRepository;
+    private ApplicationContext applicationContext;
 
-    private UsuarioServicio usuarioSv;
-    private CuentaServicio cuentaSv;
-    private ApplicationContext context;
-    private UsuarioRepository usuarioRepository;
-    private CuentaRepository cuentaRepository;
+    public PrincipalServicio(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
 
-    public void inicializarRepositorios(ApplicationContext context) throws Exception{
+    public static UsuarioServicio getUsuarioServicio() {
+        return usuarioServicio;
+    }
+
+    public static CuentaServicio getCuentaServicio() {
+        return cuentaServicio;
+    }
+
+    public static UsuarioRepository getUsuarioRepository() {
+        return usuarioRepository;
+    }
+
+    public static CuentaRepository getCuentaRepository() {
+        return cuentaRepository;
+    }
+
+    public void inicializarRepositoriosServicios() throws Exception{
         try{
-            this.context = context;
-            usuarioRepository = context.getBean(UsuarioRepository.class);
-            cuentaRepository = context.getBean(CuentaRepository.class);
+            usuarioRepository = applicationContext.getBean(UsuarioRepository.class);
+            cuentaRepository = applicationContext.getBean(CuentaRepository.class);
+            usuarioServicio = applicationContext.getBean(UsuarioServicio.class);
+            cuentaServicio = applicationContext.getBean(CuentaServicio.class);
         }catch (Exception e){
             System.out.println("Error al cargar los repositorios");
             throw  e;
         }
     }
 
-    public void inicializarBeans(ApplicationContext contextBeans) throws Exception{
-        try{
-            usuarioSv = (UsuarioServicio) contextBeans.getBean("usuarioServicio");
-            cuentaSv = (CuentaServicio) contextBeans.getBean("cuentaServicio");
-        }catch (Exception e){
-            System.out.println("Error al cargar los beans");
-            throw e;
-        }
-    }
     public  void menu(){
-        inicializarUsuarios();
         int opcion;
         do{
             System.out.println("\t\t MENÚ PRINCIPAL");
@@ -52,12 +63,11 @@ public class PrincipalServicio {
             opcion = Validador.validarIngresoEnteroPositivo();
             switch (opcion){
                 case 1:
-                    usuarioSv.agregarNuevoUsuario(usuarioRepository, cuentaSv);
-
+                    usuarioServicio.agregarNuevoUsuario();
                     break;
                 case 2:
                     System.out.println("Ingresando al menu de usuario...");
-                    usuarioSv.ingresarCuenta(usuarioRepository, cuentaRepository, cuentaSv);
+                    usuarioServicio.ingresarCuenta();
                     break;
                 case 3:
                     System.out.println("SALIENDO DEL PROGRAMA...");

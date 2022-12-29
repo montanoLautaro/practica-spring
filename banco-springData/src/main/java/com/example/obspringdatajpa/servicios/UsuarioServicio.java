@@ -4,19 +4,20 @@ package com.example.obspringdatajpa.servicios;
 import com.example.obspringdatajpa.entidades.Usuario;
 import com.example.obspringdatajpa.repositorios.CuentaRepository;
 import com.example.obspringdatajpa.repositorios.UsuarioRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Scanner;
 
 
-@Component
+
+@Service
 public class UsuarioServicio {
 
 
     private Scanner sc = new Scanner(System.in).useDelimiter("\n");
 
-    public Usuario crearUsuario(UsuarioRepository usuarios, CuentaServicio cuentaSv){
+    public Usuario crearUsuario(){
         System.out.println("\t\t INGRESO DE DATOS PARA UN NUEVO USUARIO");
 
         Usuario u = new Usuario();
@@ -38,24 +39,23 @@ public class UsuarioServicio {
         System.out.println("Ingrese el correo electronico: ");
         u.setCorreo(sc.next());
 
-        u.setCuenta(cuentaSv.crearCuenta(usuarios));
+        u.setCuenta(PrincipalServicio.getCuentaServicio().crearCuenta(PrincipalServicio.getUsuarioRepository()));
 
         return u;
     }
-    public void agregarNuevoUsuario(UsuarioRepository usuarios, CuentaServicio cuentaSv){
-        Usuario nuevoUsuario = crearUsuario(usuarios, cuentaSv);
+    public void agregarNuevoUsuario(){
+        Usuario nuevoUsuario = crearUsuario();
         if(nuevoUsuario != null){
-            if(usuarios.count() < 10){
+            if(PrincipalServicio.getUsuarioRepository().count() < 10){
                 System.out.println("creando usuario...");
-                usuarios.save(nuevoUsuario);
-                System.out.println("Se ingresaron " + usuarios.count()+ " de 10 usuarios.");
+                PrincipalServicio.getUsuarioRepository().save(nuevoUsuario);
+                System.out.println("Se ingresaron " + PrincipalServicio.getUsuarioRepository().count() + " de 10 usuarios.");
             }else{
                 System.out.println("Se alcanzó el máximo de usuarios permitido.");
             }
         }
 
     }
-
     public String ingresarNombre(){
         String nombre;
         boolean validador;
@@ -78,18 +78,18 @@ public class UsuarioServicio {
         }
         return edad;
     }
-    public void ingresarCuenta(UsuarioRepository usuariosRepository, CuentaRepository cuentaRepository, CuentaServicio cuentaSv){
-        ArrayList<Usuario> listaUsuarios = new ArrayList<>();
+    public void ingresarCuenta(){
+        ArrayList<Usuario> listaUsuarios = (ArrayList<Usuario>) PrincipalServicio.getUsuarioRepository().findAll();
         String correo;
         boolean resultado = false;
-        listaUsuarios.addAll(usuariosRepository.findAll());
+
         System.out.println("Ingrese su correo electronico: ");
         correo = sc.next();
         for (Usuario user: listaUsuarios) {
             if(user.getCorreo().equals(correo)){
                 if(validarContrasenia(user)){
                     resultado = true;
-                    cuentaSv.menuCuenta(usuariosRepository, user, cuentaRepository);
+                    PrincipalServicio.getCuentaServicio().menuCuenta(user);
                 }
                 break;
             }
